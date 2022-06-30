@@ -1,4 +1,5 @@
 from pynput import mouse
+from dip import ImageProcessor
 import tkinter as tk
 import pyautogui
 
@@ -10,10 +11,13 @@ class Utilities:
             listener.join()
 
     def takeScreenshot(self, event):
-        print('took screenshot')
         x0, y0, x1, y1 = self.canvas.coords(self.rect)
         self.toggleCanvas()
         pyautogui.screenshot(region=(x0, y0, x1 - x0, y1 - y0)).save(r'C:\Users\alogo\py-screen-capture\screenshots\snippet.png')
+        proc = ImageProcessor(r'C:\Users\alogo\py-screen-capture\screenshots\snippet.png')
+        bin_img = proc.binarize(127)
+        proc.imageSave(r'C:\Users\alogo\py-screen-capture\screenshots\modified.png', bin_img)
+
 
     def setRect(self, event):
         # creates a rect on the current mouse position
@@ -56,7 +60,6 @@ class Utilities:
 
 def main():
     util = Utilities()
-    
 
 
 if __name__ == '__main__':
