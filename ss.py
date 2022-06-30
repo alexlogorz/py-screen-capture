@@ -1,5 +1,4 @@
-from tracemalloc import start
-from pynput import mouse
+import pynput
 import pyautogui
 import tkinter as tk
 
@@ -43,13 +42,12 @@ class ss:
         self.window.mainloop()
 
     def take_screenshot(self):
-        print('\nTook screenshot, running OCR...')
-
         self.ss_pil = pyautogui.screenshot(region=(self.startingCoords[0], self.startingCoords[1], self.endingCoords[0] - self.startingCoords[0], self.endingCoords[1] - self.startingCoords[1]))
         self.ss_np = np.array(self.ss_pil)
         self.ss_np = cv2.cvtColor(self.ss_np, cv2.COLOR_RGB2BGR)
         self.h, self.w = self.ss_np.shape[:2]
         self.center = (self.w // 2, self.h // 2)
+        print('\nTook screenshot, running OCR...')
 
     def get_results(self):
         self.results = self.reader.readtext(self.ss_np, detail=0, paragraph=False)
@@ -73,7 +71,7 @@ class ss:
 
     def enable_mouse_listener(self):
         if not self.button_on:
-            self.listener = mouse.Listener(on_click=self.on_click)
+            self.listener = pynput.mouse.Listener(on_click=self.on_click)
             self.listener.start()
             self.button1.config(text="Enabled", bg="blue")
             self.button_on = True
