@@ -13,7 +13,7 @@ class ss:
     def __init__(self):
         self.window = tk.Tk()
         self.button1 = tk.Button(
-            text="listener is disabled",
+            text="Enabled",
             width=25,
             height=5,
             bg="red",
@@ -26,6 +26,7 @@ class ss:
         self.startingCoords = (0, 0)
         self.endingCoords = (0, 0)
         self.listener = None
+        self.enable_mouse_listener()
         self.ss_pil = None
         self.ss_np = None
         self.today = datetime.date.today().strftime("%d-%m-%Y")
@@ -74,7 +75,16 @@ class ss:
 
         # print(top, bottom, self.ss_np.shape)
         # cv2.imwrite('test.png', self.ss_np)
-        
+
+
+    def get_results(self):
+        self.results = self.reader.readtext(self.ss_np, detail=0, paragraph=False)
+
+        print(self.results)
+        for text in self.results:
+            print(text)
+
+        print('OCR Complete.')
 
     # This is the event listener for the on_click event
     def on_click(self, x, y, button, pressed):
@@ -85,33 +95,21 @@ class ss:
             else:
                 self.endingCoords = (x, y)
                 self.take_screenshot()
-                results = self.reader.readtext(self.ss_np, detail=0, paragraph=True)
-
-                results = [s.replace('.', ',') for s in results]
-                results = [s.replace(',,', ',') for s in results]
-                print(results)
-
-                # for bbox, text, prob in self.results:
-                #     # if 'Private Shop' in text:
-                #     #     print(text)
-                #     print(text)
-
-                print('OCR Complete.')
-
+                self.get_results()
 
     def enable_mouse_listener(self):
         if not self.button_on:
             self.listener = mouse.Listener(on_click=self.on_click)
             self.listener.start()
-            self.button1.config(text="listener enabled", bg="blue")
+            self.button1.config(text="Enabled", bg="blue")
             self.button_on = True
         else:
             self.disable_mouse_listener()
-            self.button_on = False
 
     def disable_mouse_listener(self):
         self.listener.stop()
-        self.button1.config(text="listener disabled", bg="red")
+        self.button1.config(text="Disabled", bg="red")
+        self.button_on = False
 
 def main():
 
@@ -134,7 +132,7 @@ def main():
     # The main event loop for the window. Listens for events like button clicks etc
     # window.mainloop()
 
-    ss_0 = ss()
+    ss()
 
 if __name__ == '__main__':
     main()
