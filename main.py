@@ -11,13 +11,15 @@ class Utilities:
             listener.join()
 
     def takeScreenshot(self, event):
+        savePath = r'C:\Users\alogo\py-screen-capture\screenshots\snippet.png'
+        destPath = r'C:\Users\alogo\py-screen-capture\screenshots\modified.png'
         x0, y0, x1, y1 = self.canvas.coords(self.rect)
         self.toggleCanvas()
-        pyautogui.screenshot(region=(x0, y0, x1 - x0, y1 - y0)).save(r'C:\Users\alogo\py-screen-capture\screenshots\snippet.png')
-        proc = ImageProcessor(r'C:\Users\alogo\py-screen-capture\screenshots\snippet.png')
-        bin_img = proc.binarize(127)
-        proc.imageSave(r'C:\Users\alogo\py-screen-capture\screenshots\modified.png', bin_img)
-
+        pyautogui.screenshot(region=(x0, y0, x1 - x0, y1 - y0)).save(savePath)
+        proc = ImageProcessor(savePath, destPath)
+        results = proc.image2Text()
+        salesList = proc.extractSalesList(results)
+        self.openResultsWindow(salesList)
 
     def setRect(self, event):
         # creates a rect on the current mouse position
@@ -31,17 +33,17 @@ class Utilities:
     def toggleCanvas(self):
         if self.showCanvas:
             self.showCanvas = False
-            self.closeWindow()
+            self.closeCanvasWindow()
         else:
             self.showCanvas = True
-            self.openWindow()
+            self.openCanvasWindow()
     
     def on_click(self, x, y, button, pressed):
         # detect right button release
         if button == button.right and pressed == False:
             self.toggleCanvas()
     
-    def openWindow(self):
+    def openCanvasWindow(self):
         # configure the window
         self.window = tk.Tk()
         self.window.attributes('-topmost', True)
@@ -55,8 +57,35 @@ class Utilities:
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.window.mainloop()
 
-    def closeWindow(self):
+    def submitResultsForm(self):
+        print('Submitted!')
+
+    def closeCanvasWindow(self):
         self.window.destroy()
+
+    def openResultsWindow(self, results):
+        self.window2 = tk.Tk()
+        self.window2.title("Edit Results")
+        # labels for the columns
+        tk.Label(self.window2 ,text = "Item Names").grid(row = 0,column = 0)
+        tk.Label(self.window2 ,text = "Item Prices").grid(row = 0,column = 1)
+        # creates the grid system
+        for i in range(1, len(results[1]) + 1):
+            # text input for item name
+            itemText = tk.StringVar()
+            tk.Entry(self.window2, textvariable=itemText).grid(row = i, column = 0, padx=5, pady=2, ipadx=3, ipady=3)
+            itemText.set(results[1][i - 1])
+            # text input for item price
+            priceText = tk.StringVar()
+            tk.Entry(self.window2, textvariable=priceText).grid(row = i, column = 1, padx=5, pady=2, ipadx=3, ipady=3)
+            priceText.set(results[2][i - 1])
+        # text input for sellers name
+        sellerText = tk.StringVar()
+        tk.Entry(self.window2, textvariable=sellerText).grid(row = len(results[1]) + 2, column = 0, padx=5, pady=5)
+        sellerText.set(results[0][0])
+        # submit button
+        tk.Button(self.window2, text ="Looks good!", command = self.submitResultsForm).grid(row = len(results[1]) + 2, column = 1, padx=5, pady=2, ipadx=3, ipady=3)
+        self.window2.mainloop()
 
 def main():
     util = Utilities()
