@@ -2,12 +2,16 @@ from pynput import mouse
 from dip import ImageProcessor
 from dip import Algorithms
 from dip import isInRange
+from datetime import date
+from db import DBManager
 import tkinter as tk
 import pyautogui
 
-class Utilities:
+class Driver:
     def __init__(self):
         self.showCanvas = False
+        # connect to db
+        self.conn = DBManager('test.db')
         # start the mouse listener
         with mouse.Listener(on_click=self.on_click) as listener:
             listener.join()
@@ -64,24 +68,33 @@ class Utilities:
         self.window.mainloop()
 
     def submitResultsForm(self):
-        print('Submitted!')
+        tuples = []
+        for item in self.items:
+            (sellerText, itemText, itemPrice) = item
+            stamp = date.today()
+            tuples.append((sellerText.get(), itemText.get(), itemPrice.get(), stamp))
+        self.conn.insertTuples(tuples)
+        print('TUPLES: \n', tuples)
+        self.window.destroy()
 
     def closeCanvasWindow(self):
         self.window.destroy()
 
     def openResultsWindow(self, salesList):
+        self.items = []
         self.window = tk.Tk()
         self.window.title("Edit Results")
+        sellerText = tk.StringVar()
         # labels for the columns
-        tk.Label(self.window ,text = "Item Names").grid(row = 0,column = 0)
-        tk.Label(self.window ,text = "Item Prices").grid(row = 0,column = 1)
+        tk.Label(self.window, text = "Item Names").grid(row = 0,column = 0)
+        tk.Label(self.window, text = "Item Prices").grid(row = 0,column = 1)
         # creates the grid system
         for itemIdx in range(0, len(salesList[1])):
-            # text input for item name
+            # vars and entry for item name
             itemText = tk.StringVar()
             tk.Entry(self.window, textvariable=itemText).grid(row = itemIdx, column = 0, padx=5, pady=2, ipadx=3, ipady=3)
             itemText.set(salesList[1][itemIdx])
-            # text input for item price
+            # vars and entry for item price 
             priceText = tk.StringVar()
             tk.Entry(self.window, textvariable=priceText).grid(row = itemIdx, column = 1, padx=5, pady=2, ipadx=3, ipady=3)
             # fixes an out of range bug
@@ -89,16 +102,21 @@ class Utilities:
                 priceText.set(salesList[2][itemIdx])
             else:
                 priceText.set(0)
+            self.items.append((sellerText, itemText, priceText))
         # text input for sellers name
-        sellerText = tk.StringVar()
         tk.Entry(self.window, textvariable=sellerText).grid(row = len(salesList[1]) + 1, column = 0, padx=5, pady=5)
-        sellerText.set(salesList[0])
+        # try to slice the sellers names to only include the name
+        try:
+            sellersName = salesList[0] 
+            sellerText.set(sellersName[0:sellersName.index("'")])
+        except:
+            sellerText.set(salesList[0])
         # submit button
         tk.Button(self.window, text ="Looks good!", command = self.submitResultsForm).grid(row = len(salesList[1]) + 1, column = 1, padx=5, pady=2, ipadx=3, ipady=3)
         self.window.mainloop()
 
 def main():
-    util = Utilities()
+    Driver()
 
 
 if __name__ == '__main__':
