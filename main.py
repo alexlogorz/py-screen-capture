@@ -1,3 +1,4 @@
+from turtle import bgcolor
 from pynput import mouse
 from dip import ImageProcessor
 from dip import Algorithms
@@ -66,12 +67,19 @@ class Driver:
 
     def submitResultsForm(self):
         tuples = []
-        for item in self.items:
-            (itemText, itemPrice) = item
-            stamp = date.today()
-            tuples.append((itemText.get().replace(",", ""), itemPrice.get().replace(",", ""), stamp))
-        self.conn.insertTuples(tuples)
-        self.window.destroy()
+        if not self.sellerText.get():
+            print('Must enter sellers name')
+        else:
+            for item in self.items:
+                (itemText, itemPrice) = item
+                stamp = date.today()
+                # dont include empty tuples
+                if not itemText.get() or not itemPrice.get():
+                    pass
+                else:
+                    tuples.append((self.sellerText.get(), itemText.get(), itemPrice.get().replace(",", ""), stamp))
+            self.conn.insertTuples(tuples)
+            self.window.destroy()
 
     def closeCanvasWindow(self):
         self.window.destroy()
@@ -80,18 +88,26 @@ class Driver:
         # items array used to store the (name, price) tuples 
         self.items = []
         self.window = tk.Tk()
+        self.window.configure(bg="white", padx = 10, pady = 10)
+        # creating results form
         self.window.title("Edit Results")
-        tk.Label(self.window, text = "Item Names").grid(row = 0,column = 0)
-        tk.Label(self.window, text = "Item Prices").grid(row = 0,column = 1)
+        tk.Label(self.window, bg="white", text = "Item Name", font=('Helvetica', 10, 'bold')).grid(row = 0, column = 0)
+        tk.Label(self.window, bg="white", text = "Item Price", font=('Helvetica', 10, 'bold')).grid(row = 0, column = 1)
+        self.sellerText = tk.StringVar()
+        self.sellerText.set('')
+        # iterates over the sales list to create the text entries for items
         for itemIdx in range(0, len(salesList[0])):
             itemNameText = tk.StringVar()
             itemPriceText = tk.StringVar()
-            tk.Entry(self.window, textvariable=itemNameText).grid(row = itemIdx, column = 0, padx=5, pady=2, ipadx=3, ipady=3)
-            tk.Entry(self.window, textvariable=itemPriceText).grid(row = itemIdx, column = 1, padx=5, pady=2, ipadx=3, ipady=3)
+            tk.Entry(self.window, textvariable=itemNameText, borderwidth=2, relief="groove").grid(row = itemIdx + 1, column = 0, padx=5, pady=5, ipadx=5, ipady=5)
+            tk.Entry(self.window, textvariable=itemPriceText, borderwidth=2, relief="groove").grid(row = itemIdx + 1, column = 1, padx=5, pady=5, ipadx=5, ipady=5)
             itemNameText.set(salesList[0][itemIdx])
             itemPriceText.set(salesList[1][itemIdx]) if isInRange(salesList[1], itemIdx) else itemPriceText.set(0)
             self.items.append((itemNameText, itemPriceText))
-        tk.Button(self.window, text ="Looks good!", command = self.submitResultsForm).grid(row = len(salesList[0]) + 1, column = 1, padx=5, pady=2, ipadx=3, ipady=3)
+        # sellers entry and submit button
+        tk.Label(self.window, bg="white", text = "Seller Name", font=('Helvetica', 10, 'bold')).grid(row = len(salesList[0]) + 1, column = 0)
+        tk.Entry(self.window, textvariable=self.sellerText, borderwidth=2, relief="groove").grid(row = len(salesList[0]) + 2, column = 0, padx=5, pady=5, ipadx=5, ipady=5)
+        tk.Button(self.window, text ="Looks good!", bg="black", fg="white", command = self.submitResultsForm).grid(row = len(salesList[0]) + 2, column = 1, padx=5, pady=5, ipadx=5, ipady=5)
         self.window.mainloop()
 
 def main():
