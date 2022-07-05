@@ -24,11 +24,8 @@ class Driver:
         pyautogui.screenshot(region=(x0, y0, x1 - x0, y1 - y0)).save(savePath)
         proc = ImageProcessor(savePath, destPath)
         results = proc.image2Text(Algorithms.DB_THRES)
-        print("RESULTS: ", results)
-        print("\n")
+        print("OCR Results: ", results)
         salesList = proc.extractSalesList(results)
-        print("SALES LIST: ", salesList)
-        print("\n")
         self.openResultsWindow(salesList)
 
     def setRect(self, event):
@@ -70,49 +67,31 @@ class Driver:
     def submitResultsForm(self):
         tuples = []
         for item in self.items:
-            (sellerText, itemText, itemPrice) = item
+            (itemText, itemPrice) = item
             stamp = date.today()
-            tuples.append((sellerText.get(), itemText.get(), itemPrice.get(), stamp))
+            tuples.append((itemText.get(), itemPrice.get(), stamp))
         self.conn.insertTuples(tuples)
-        print('TUPLES: \n', tuples)
         self.window.destroy()
 
     def closeCanvasWindow(self):
         self.window.destroy()
 
     def openResultsWindow(self, salesList):
+        # items array used to store the (name, price) tuples 
         self.items = []
         self.window = tk.Tk()
         self.window.title("Edit Results")
-        sellerText = tk.StringVar()
-        # labels for the columns
         tk.Label(self.window, text = "Item Names").grid(row = 0,column = 0)
         tk.Label(self.window, text = "Item Prices").grid(row = 0,column = 1)
-        # creates the grid system
-        for itemIdx in range(0, len(salesList[1])):
-            # vars and entry for item name
-            itemText = tk.StringVar()
-            tk.Entry(self.window, textvariable=itemText).grid(row = itemIdx, column = 0, padx=5, pady=2, ipadx=3, ipady=3)
-            itemText.set(salesList[1][itemIdx])
-            # vars and entry for item price 
-            priceText = tk.StringVar()
-            tk.Entry(self.window, textvariable=priceText).grid(row = itemIdx, column = 1, padx=5, pady=2, ipadx=3, ipady=3)
-            # fixes an out of range bug
-            if isInRange(salesList[2], itemIdx):
-                priceText.set(salesList[2][itemIdx])
-            else:
-                priceText.set(0)
-            self.items.append((sellerText, itemText, priceText))
-        # text input for sellers name
-        tk.Entry(self.window, textvariable=sellerText).grid(row = len(salesList[1]) + 1, column = 0, padx=5, pady=5)
-        # try to slice the sellers names to only include the name
-        try:
-            sellersName = salesList[0] 
-            sellerText.set(sellersName[0:sellersName.index("'")])
-        except:
-            sellerText.set(salesList[0])
-        # submit button
-        tk.Button(self.window, text ="Looks good!", command = self.submitResultsForm).grid(row = len(salesList[1]) + 1, column = 1, padx=5, pady=2, ipadx=3, ipady=3)
+        for itemIdx in range(0, len(salesList[0])):
+            itemNameText = tk.StringVar()
+            itemPriceText = tk.StringVar()
+            tk.Entry(self.window, textvariable=itemNameText).grid(row = itemIdx, column = 0, padx=5, pady=2, ipadx=3, ipady=3)
+            tk.Entry(self.window, textvariable=itemPriceText).grid(row = itemIdx, column = 1, padx=5, pady=2, ipadx=3, ipady=3)
+            itemNameText.set(salesList[0][itemIdx])
+            itemPriceText.set(salesList[1][itemIdx]) if isInRange(salesList[1], itemIdx) else itemPriceText.set(0)
+            self.items.append((itemNameText, itemPriceText))
+        tk.Button(self.window, text ="Looks good!", command = self.submitResultsForm).grid(row = len(salesList[0]) + 1, column = 1, padx=5, pady=2, ipadx=3, ipady=3)
         self.window.mainloop()
 
 def main():

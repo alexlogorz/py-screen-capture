@@ -1,18 +1,30 @@
 import cv2
-from cv2 import scaleAdd
 import easyocr
 import enum
 import re
+from math import floor
 
 class Algorithms(enum.Enum):
         BINARIZE = 0
         DB_THRES = 1
         NONE = 2
+class Channel(enum.Enum):
+    B = 0
+    G = 1
+    R = 2
 
+# some helper methods
 def isInRange(array, index):
         if 0 <= index <= len(array) - 1:
             return True
         return False
+
+def isPrice(currentItem):
+    if re.search("^\d\d\d$", currentItem) or re.search("^[0-9,]*$", currentItem):
+        return True
+    else:
+        return False
+        
 
 class ImageProcessor:
     def __init__(self, srcPath, destPath):
@@ -31,7 +43,7 @@ class ImageProcessor:
         for row in range(0, image.shape[0]):
             for col in range(0, image.shape[1]):
                 pixel = image[row,col]
-                if (180 <= pixel[0] <= 255 and 180 <= pixel[1] <= 255 and 180 <= pixel[2] <= 255) or (pixel[0] == 0 and 126 <= pixel[1] <= 153 and pixel[2] == 0) or (210 <= pixel[0] <= 255 and 42 <= pixel[1] <= 51 and 42 <= pixel[2] <= 51):
+                if (204 <= pixel[0] <= 255 and 204 <= pixel[1] <= 255 and 204 <= pixel[2] <= 255) or (pixel[0] == 0 and 122 <= pixel[1] <= 153 and pixel[2] == 0) or (204 <= pixel[0] <= 255 and 41 <= pixel[1] <= 51 and 41 <= pixel[2] <= 51):
                     image[row,col] = [0, 0, 0]
                 else:
                     image[row,col] = [255, 255, 255]
@@ -40,14 +52,9 @@ class ImageProcessor:
     def saveImage(self, img):
         cv2.imwrite(self.destPath, img)
 
-    def image2Text(self):
-        result = self.reader.readtext(self.srcPath, detail = 0, paragraph=False)
-        return result
-    
-    # overloaded to specify preprocessing
     def image2Text(self, algo):
         if(algo == Algorithms.BINARIZE):
-            bin_img = self.binarize(210)
+            bin_img = self.binarize(127)
             self.saveImage(bin_img)
             result = self.reader.readtext(self.destPath, detail = 0, paragraph=False)
         elif(algo == Algorithms.DB_THRES):
@@ -57,39 +64,27 @@ class ImageProcessor:
         else:
             result = self.reader.readtext(self.srcPath, detail = 0, paragraph=False)
         return result
+   
 
     def extractSalesList(self, results):
-        seller = results[0]
         itemNames = []
         itemPrices = []
-        salesList = results[results.index('Sale List') + 1:len(results)]
-        
-        print("SUBARRAY LIST: ", salesList)
-        print("\n")
-
-        for currentItemIdx in range(0, len(salesList)):
-            currentItem = salesList[currentItemIdx]
-            # match item price
-            if re.search("[.,]", currentItem):
+        for currentIdx in range(0, len(results)):
+            currentItem = results[currentIdx]
+            if isPrice(currentItem):
                 itemPrices.append(currentItem)
-            # match item name
             else:
-                # an item tier
-                if(re.search("^\+\d{1,2}$", currentItem)):
-                    pass
-                else:
-                    # just a guard to protect against out of range error
-                    if isInRange(salesList, currentItemIdx + 1):
-                        # if next item is a tier then it belongs to this items name
-                        nextItem = salesList[currentItemIdx + 1]
-                        if re.search("^\+\d{1,2}$", nextItem):
-                            itemNames.append(currentItem + " " + nextItem)
-                        else:
-                            itemNames.append(currentItem)
+                if isInRange(results, currentIdx + 1):
+                    nextItem = results[currentIdx + 1]
+                    if re.search("^\+\d{1,2}$", nextItem) or re.search("^\d% \)$", nextItem):
+                        itemNames.append(currentItem + " " + nextItem)
+                    elif re.search("^\+\d{1,2}$", currentItem) or re.search("^\d% \)$", currentItem):
+                        pass
                     else:
-                        # no need to worry about tiers here since there is no next item
                         itemNames.append(currentItem)
-
-        return [seller, itemNames, itemPrices]
+                else:
+                    itemNames.append(currentItem)
+        print("Sales List: ", [itemNames, itemPrices])
+        return [itemNames, itemPrices]
 
 

@@ -13,6 +13,6 @@ class DBManager:
         
     def insertTuples(self, tuples):
         self.cursor.executemany("""
-            INSERT INTO Items (name, price, seller, stamp) VALUES (?, ?, ?, ?) 
+            INSERT INTO Items (price, seller, stamp) VALUES (?, ?, ?) 
         """, tuples)
         self.conn.commit()
