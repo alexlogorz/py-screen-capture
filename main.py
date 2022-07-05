@@ -18,8 +18,8 @@ class Driver:
             listener.join()
 
     def takeScreenshot(self, event):
-        savePath = r'C:\Users\alogo\py-screen-capture\screenshots\snippet.png'
-        destPath = r'C:\Users\alogo\py-screen-capture\screenshots\modified.png'
+        savePath = 'screenshots\snippet.png'
+        destPath = 'screenshots\modified.png'
         x0, y0, x1, y1 = self.canvas.coords(self.rect)
         self.toggleCanvas()
         pyautogui.screenshot(region=(x0, y0, x1 - x0, y1 - y0)).save(savePath)
