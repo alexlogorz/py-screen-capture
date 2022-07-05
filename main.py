@@ -69,7 +69,7 @@ class Driver:
         for item in self.items:
             (itemText, itemPrice) = item
             stamp = date.today()
-            tuples.append((itemText.get(), itemPrice.get(), stamp))
+            tuples.append((itemText.get().replace(",", ""), itemPrice.get().replace(",", ""), stamp))
         self.conn.insertTuples(tuples)
         self.window.destroy()
 
