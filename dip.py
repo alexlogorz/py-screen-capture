@@ -76,7 +76,7 @@ class ImageProcessor:
             else:
                 if isInRange(results, currentIdx + 1):
                     nextItem = results[currentIdx + 1]
-                    if re.search("^\+\d{1,2}$", nextItem) or re.search("^\d% \)$", nextItem):
+                    if re.search("^\+\d{1,2}$", nextItem) or re.search("^\d% *\)$", nextItem):
                         itemNames.append(currentItem + " " + nextItem)
                     elif re.search("^\+\d{1,2}$", currentItem) or re.search("^\d% \)$", currentItem):
                         pass
