@@ -1,5 +1,12 @@
 # py-screen-capture
 A python program to take an image snippet, extract meaningful text from it and store it in a database.
+
+The idea was to use this tool for a popular game called Flyfff, where users sell items in private shops.
+
+The user can use the program to colelct shop data by simply taking image snippets, processing it and storing in database.
+
+The user can then query the database to find the most profitable items to re-sell.
+
 ## Installation
 1. Download python for windows: https://www.python.org/downloads/ 
 2. Open a cmd prompt and run: ```python get-pip.py``` 
